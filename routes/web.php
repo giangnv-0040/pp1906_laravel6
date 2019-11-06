@@ -28,6 +28,7 @@ Route::get('products/{product}', 'ProductController@show')->name('products.show'
 
 Route::middleware(['auth'])->group(function () {
     Route::post('orders', 'OrderController@store')->name('orders.store');
+    Route::post('orders/update', 'OrderController@update')->name('orders.update');
     Route::get('cart', 'OrderController@showCart')->name('orders.show');
     Route::post('orders/delete', 'OrderController@destroyProduct')
         ->name('orders.product.destroy');

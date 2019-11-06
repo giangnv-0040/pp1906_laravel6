@@ -15,6 +15,7 @@ class Order extends Model
         'user_id',
         'total_price',
         'description',
+        'status',
     ];
 
     public function user() {
@@ -24,5 +25,16 @@ class Order extends Model
     public function products() {
         return $this->belongsToMany('App\Models\Product', 'product_order')
             ->withPivot('quantity');
+    }
+
+    /**
+     * Scope a query get new order.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNewOrder($query)
+    {
+        return $query->where('status', 1);
     }
 }
