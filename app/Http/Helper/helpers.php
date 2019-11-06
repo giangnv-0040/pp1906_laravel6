@@ -6,8 +6,8 @@ if (!function_exists('showCartQuantity')) {
 
         if (auth()->check()) {
             $currentUser = auth()->user();
-            $newOrder = $currentUser->orders
-                ->where('status', 1)
+            $newOrder = $currentUser->orders()
+                ->newOrder()
                 ->first();
 
             $quantity = $newOrder ? $newOrder->products->sum('pivot.quantity') : 0;

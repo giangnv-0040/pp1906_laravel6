@@ -107,6 +107,12 @@
       });
 
       $('.product-remove').click(function() {
+        var cartNumber = 0;
+
+        $.each( $('input[name="quantity"]'), function() {
+          cartNumber = parseInt(cartNumber) + parseInt($(this).val());
+        });
+
         if (confirm('Delete this product, are you sure?')) {
           var url = '/orders/delete';
           var productId = $(this).data('product-id');
@@ -123,6 +129,43 @@
               if (result.status) {
                 $('.product-' + productId).remove();
                 $('.show-total-price').text('$' + result.total_price);
+                $('.cart-number').text('[' + cartNumber + ']');
+              }
+            },
+            error: function() {
+              alert('Something went wrong!');
+              location.reload();
+            }
+          });
+        }
+      });
+
+      $('input[name="quantity"]').change(function() {
+        var cartNumber = 0;
+
+        $.each( $('input[name="quantity"]'), function() {
+          cartNumber = parseInt(cartNumber) + parseInt($(this).val());
+        });
+
+        if (confirm('Update this product, are you sure?')) {
+          var url = '/orders/update';
+          var productId = $(this).parent().parent().parent().find('.product-remove').data('product-id');
+          var quantityUpdate = $(this).val();
+
+          var data = {
+            'product_id': productId,
+            'quantity': quantityUpdate
+          };
+
+          $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            success: function(result) {
+              console.log('success');
+              if (result.status) {
+                $('.show-total-price').text('$' + result.total_price);
+                $('.cart-number').text('[' + cartNumber + ']');
               }
             },
             error: function() {
