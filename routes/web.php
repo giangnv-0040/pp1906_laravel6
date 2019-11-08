@@ -38,7 +38,7 @@ Route::get('/admin', function() {
     return view('admin.dashboard');
 })->name('dashboard')->middleware('auth');
 
-Route::middleware(['auth'])
+Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->namespace('Admin')
