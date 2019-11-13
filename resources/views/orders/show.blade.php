@@ -86,9 +86,9 @@
           </p>
         </div>
         <p class="text-center">
-          <a href="checkout.html" class="btn btn-primary py-3 px-4">
+          <div class="btn btn-primary py-3 px-4 checkout">
             Proceed to Checkout
-          </a>
+          </div>
         </p>
     </div>
   </div>
@@ -166,6 +166,28 @@
               if (result.status) {
                 $('.show-total-price').text('$' + result.total_price);
                 $('.cart-number').text('[' + cartNumber + ']');
+              }
+            },
+            error: function() {
+              alert('Something went wrong!');
+              location.reload();
+            }
+          });
+        }
+      });
+
+      $('.checkout').click(function() {
+        if (confirm('Proceed to checkout now, are you sure?')) {
+          var url = '/orders/confirm';
+
+          $.ajax({
+            url: url,
+            type: 'POST',
+            data: {},
+            success: function(result) {
+              if (result.status) {
+                alert('Proceed to checkout success. Thank you!');
+                window.location.href = '/products';
               }
             },
             error: function() {

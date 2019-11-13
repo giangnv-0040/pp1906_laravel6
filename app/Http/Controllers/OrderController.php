@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\ProductOrder;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderConfirm;
 
 class OrderController extends Controller
 {
@@ -163,6 +165,34 @@ class OrderController extends Controller
         return response()->json([
             'status' => $updateFlag,
             'total_price' => $totalPrice,
+        ]);
+    }
+
+    /**
+     * Confirm order.
+     *
+     * @param  \App\Http\Requests\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function confirm(Request $request)
+    {
+        $updateFlag = true;
+
+        $currentUser = auth()->user();
+        $order = $currentUser->orders()->newOrder()->first();
+
+        try {
+            $order->update(['status' => 2]);
+            // TO DO send mail to user
+            Mail::to($request->user())->send(new OrderConfirm($order));
+        } catch (\Exception $e) {
+            \Log::error($e);
+
+            $updateFlag = false;
+        }
+
+        return response()->json([
+            'status' => $updateFlag,
         ]);
     }
 }
