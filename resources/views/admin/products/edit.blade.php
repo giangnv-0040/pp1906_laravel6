@@ -14,7 +14,7 @@
                 <div class="card-header">{{ __('Edit product') }}</div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('admin.products.update', $product->id) }}">
+                    <form method="POST" action="{{ route('admin.products.update', $product->id) }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
@@ -95,6 +95,15 @@
 
                             <div class="col-md-6">
                                 <input id="price" type="text" class="form-control" name="price" value="{{ old('price') ?? $product->price }}" required autocomplete="new-price">
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label for="price" class="col-md-4 col-form-label text-md-right">{{ __('Image') }}</label>
+
+                            <div class="col-md-6">
+                                <img src="{{ showProductImage($product->image) }}" width="400" height="auto">
+                                <input id="image" type="file" class="form-control" name="image" value="{{ old('image') }}">
                             </div>
                         </div>
 

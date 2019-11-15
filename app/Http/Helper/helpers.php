@@ -22,3 +22,15 @@ if (!function_exists('showCartQuantity')) {
         return $quantity;
     }
 }
+
+if (!function_exists('showProductImage')) {
+    function showProductImage($image) {
+        $imagePath = '/theme/images/product-1.jpg';
+
+        if ($image) {
+            $imagePath = asset('storage/products/' . $image);
+        }
+
+        return $imagePath;
+    }
+}

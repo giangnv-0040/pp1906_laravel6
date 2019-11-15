@@ -12,7 +12,7 @@
                         @foreach ($products as $product)
                         <div class="col-sm-6 col-md-6 col-lg-4 ftco-animate">
                             <div class="product">
-                                <a href="#" class="img-prod"><img class="img-fluid" src="/theme/images/product-1.jpg" alt="Colorlib Template">
+                                <a href="#" class="img-prod"><img class="img-fluid" src="{{ showProductImage($product->image) }}" alt="{{ $product->name }}">
                                     <span class="status">30%</span>
                                     <div class="overlay"></div>
                                 </a>
