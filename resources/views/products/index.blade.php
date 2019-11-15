@@ -71,6 +71,7 @@
                     url: url,
                     type: 'POST',
                     data: data,
+                    cache: false,
                     success: function(result) {
                         $('.cart-number').text('[' + result.quantity + ']');
                         alert('Order success!');

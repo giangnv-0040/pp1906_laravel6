@@ -5,8 +5,8 @@ if (!function_exists('showCartQuantity')) {
         $quantity = 0;
 
         if (auth()->check()) {
-            if (session()->has('product_quantity')) {
-                return session('product_quantity');
+            if (session()->has('order_data')) {
+                return session('order_data.quantity');
             }
 
             $currentUser = auth()->user();
@@ -16,7 +16,7 @@ if (!function_exists('showCartQuantity')) {
 
             $quantity = $newOrder ? $newOrder->products->sum('pivot.quantity') : 0;
 
-            session(['product_quantity' => $quantity]);
+            // session(['product_quantity' => $quantity]);
         }
 
         return $quantity;
