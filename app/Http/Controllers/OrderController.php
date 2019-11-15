@@ -63,10 +63,14 @@ class OrderController extends Controller
             return response()->json($result);
         }
 
+        $quantity = $order->products->sum('pivot.quantity');
+
         $result = [
             'status' => true,
-            'quantity' => $order->products->sum('pivot.quantity'),
+            'quantity' => $quantity,
         ];
+
+        session(['product_quantity' => $quantity]);
 
         return response()->json($result);
     }
@@ -190,6 +194,8 @@ class OrderController extends Controller
 
             $updateFlag = false;
         }
+
+        session()->forget('product_quantity');
 
         return response()->json([
             'status' => $updateFlag,
