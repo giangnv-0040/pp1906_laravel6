@@ -7,9 +7,17 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
 use App\Http\Requests\ProductRequest;
+use App\Services\ProductService;
 
 class ProductController extends Controller
 {
+    protected $productService;
+
+    public function __construct(ProductService $productService)
+    {
+        $this->productService = $productService;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -17,7 +25,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = Product::all();
+        $products = $this->productService->getListProducts();
 
         return view('admin.products.index', ['products' => $products]);
     }
@@ -52,11 +60,9 @@ class ProductController extends Controller
 
         $data['user_id'] = auth()->id();
 
-        try {
-            $product = Product::create($data);
-        } catch (\Exception $e) {
-            \Log::error($e);
+        $product = $this->productService->createProduct($data);
 
+        if (!$product) {
             return back()->withInput($data)->with('status', 'Create failed!');
         }
 

@@ -6,9 +6,17 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Http\Requests\CategoryRequest;
+use App\Services\CategoryService;
 
 class CategoryController extends Controller
 {
+    protected $categoryService;
+
+    public function __construct(CategoryService $categoryService)
+    {
+        $this->categoryService = $categoryService;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -16,7 +24,8 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::orderBy('created_at', 'desc')->get();
+        $categories = $this->categoryService
+            ->getList(['order_by' => 'created_at']);
 
         return view('admin.categories.index', ['categories' => $categories]);
     }
@@ -28,7 +37,7 @@ class CategoryController extends Controller
      */
     public function create()
     {
-        $categories = Category::all();
+        $categories = $this->categoryService->getList();
 
         return view('admin.categories.create', compact('categories'));
     }
@@ -58,7 +67,7 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             \Log::error($e);
 
-            return back()->withInput($data)->with('status', 'Create failed!');
+            return back()->withInput($data)->with('status', __('app.msg.create_failed'));
         }
 
         return redirect('/admin/categories/' . $category->id)
@@ -114,17 +123,14 @@ class CategoryController extends Controller
             'price',
         ]);
 
-        $category = Category::findOrFail($id);
+        $updateFlag = $this->categoryService->update($id, $data);
 
-        try {
-            $category->update($data);
-        } catch (\Exception $e) {
-            \Log::error($e);
-
-            return back()->with('status', 'Update faild.');
+        if ($updateFlag) {
+            return redirect('admin/categories/' . $category->id)
+                ->with('status', 'Update success.');
         }
 
-        return redirect('admin/categories/' . $category->id)->with('status', 'Update success.');
+        return back()->with('status', 'Update faild.');
     }
 
     /**
