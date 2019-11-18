@@ -30,10 +30,10 @@
                 </tr>
               </thead>
               <tbody>
-                @if ($order)
-                  @foreach ($order->products as $product)
-                    <tr class="text-center product-{{ $product->id }}">
-                      <td class="product-remove" data-product-id="{{ $product->id }}">
+                @if ($products)
+                  @foreach ($products as $id => $product)
+                    <tr class="text-center product-{{ $id }}">
+                      <td class="product-remove" data-product-id="{{ $id }}">
                         <a href="#">
                           <span class="ion-ios-close"></span>
                         </a>
@@ -42,19 +42,19 @@
                       <td class="image-prod"><div class="img" style="background-image:url(/theme/images/product-3.jpg);"></div></td>
 
                       <td class="product-name">
-                        <h3>{{ $product->name }}</h3>
+                        <h3>{{ $products[$id]['name'] }}</h3>
                         <p>Far far away, behind the word mountains, far from the countries</p>
                       </td>
 
-                      <td class="price">${{ $product->price }}</td>
+                      <td class="price">${{ $products[$id]['price'] }}</td>
 
                       <td class="quantity">
                         <div class="input-group mb-3">
-                          <input type="text" name="quantity" class="quantity form-control input-number" value="{{ $product->pivot->quantity }}" min="1" max="100">
+                          <input type="text" name="quantity" class="quantity form-control input-number" value="{{ $products[$id]['quantity'] }}" min="1" max="100">
                         </div>
                       </td>
 
-                      <td class="total">${{ $product->price * $product->pivot->quantity }}</td>
+                      <td class="total">${{ $products[$id]['price'] * $products[$id]['quantity'] }}</td>
                     </tr><!-- END TR-->
                   @endforeach
                 @endif
@@ -69,7 +69,7 @@
           <h3>Cart Totals</h3>
           <p class="d-flex">
             <span>Subtotal</span>
-            <span class="show-total-price">${{ $order ? $order->total_price : 0 }}</span>
+            <span class="show-total-price">${{ session('order_data.total_price') }}</span>
           </p>
           <p class="d-flex">
             <span>Delivery</span>
@@ -82,7 +82,7 @@
           <hr>
           <p class="d-flex total-price">
             <span>Total</span>
-            <span class="show-total-price">${{ $order ? $order->total_price : 0 }}</span>
+            <span class="show-total-price">${{ session('order_data.total_price') }}</span>
           </p>
         </div>
         <p class="text-center">

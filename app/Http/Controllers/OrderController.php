@@ -11,47 +11,32 @@ use App\Mail\OrderConfirm;
 
 class OrderController extends Controller
 {
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\Request $request
-     * @return \Illuminate\Http\Response
-     */
+
     public function store(Request $request)
     {
         $productId = $request->product_id;
         $product = Product::findOrFail($productId);
         $currentUserId = auth()->id();
 
-        $orderData = [
-            'user_id' => $currentUserId,
-            'total_price' => $product->price,
-            'description' => '',
-        ];
-
-        $order = Order::where('user_id', $currentUserId)
-            ->newOrder()
-            ->first();
+        if (session()->has('product_data')) {
+            $productData = session('product_data');
+        } else {
+            $productData = [];
+        }
 
         try {
-            if (is_null($order)) {
-                $order = Order::create($orderData);
-            }
-
-            $productOrder = ProductOrder::where('order_id', $order->id)
-                ->where('product_id', $product->id)
-                ->first();
-
-            if ($productOrder) { // If exist product in order
-                $productOrder->increment('quantity', 1);
+            // If exist product in order
+            if (array_key_exists($product->id, $productData)) {
+                $productData[$product->id]['quantity'] += 1;
             } else {
-                // Create product_order
-                $product->orders()
-                    ->attach($order->id, ['quantity' => 1, 'price' => $product->price]);
+                $productData[$product->id] = [
+                    'name' => $product->name,
+                    'price' => $product->price,
+                    'quantity' => 1,
+                ];
             }
 
-            $totalPrice = $this->totalPrice($order);
-            $order->update(['total_price' => $totalPrice]);
+            session(['product_data' => $productData]);
         } catch (\Exception $e) {
             \Log::error($e);
 
@@ -63,14 +48,26 @@ class OrderController extends Controller
             return response()->json($result);
         }
 
-        $quantity = $order->products->sum('pivot.quantity');
+        $quantity = array_sum(array_column($productData,'quantity'));
 
         $result = [
             'status' => true,
             'quantity' => $quantity,
         ];
 
-        session(['product_quantity' => $quantity]);
+        $orderData = [
+            'user_id' => $currentUserId,
+            'total_price' => $product->price,
+            'description' => '',
+            'quantity' => $quantity,
+        ];
+
+        if (session()->has('order_data')) {
+            $orderData['total_price'] = session('order_data.total_price')
+                + $product->price;
+        }
+
+        session(['order_data' => $orderData]);
 
         return response()->json($result);
     }
@@ -78,18 +75,35 @@ class OrderController extends Controller
     /**
      * Caculate total price for orders.
      *
-     * @param App\Models\Order $order
+     * @param array $products
      * @return int $totalPrice;
      */
-    public function totalPrice($order)
+    public function totalPrice($products)
     {
         $totalPrice = 0;
 
-        foreach ($order->products as $product) {
-            $totalPrice += $product->price * $product->pivot->quantity;
+        foreach ($products as $product) {
+            $totalPrice += $product['price'] * $product['quantity'];
         }
 
         return $totalPrice;
+    }
+
+    /**
+     * Caculate total quantity for orders.
+     *
+     * @param array $products
+     * @return int $totalQuantity;
+     */
+    public function totalQuantity($products)
+    {
+        $totalQuantity = 0;
+
+        foreach ($products as $product) {
+            $totalQuantity += $product['quantity'];
+        }
+
+        return $totalQuantity;
     }
 
     /**
@@ -99,12 +113,9 @@ class OrderController extends Controller
      */
     public function showCart()
     {
-        $currentUser = auth()->user();
-        $order = $currentUser->orders()
-            ->newOrder()
-            ->first();
+        $products = session('product_data');
 
-        return view('orders.show', compact('order'));
+        return view('orders.show', compact('products'));
     }
 
     /**
@@ -115,25 +126,24 @@ class OrderController extends Controller
     */
     public function destroyProduct(Request $request)
     {
-        $deleteFlag = true;
-
         $productId = $request->product_id;
         $currentUser = auth()->user();
-        $order = $currentUser->orders()->newOrder()->first();
 
-        try {
-            $order->products()->detach($productId);
+        $products = session('product_data');
+        $order = session('order_data');
 
-            $totalPrice = $this->totalPrice($order);
-            $order->update(['total_price' => $totalPrice]);
-        } catch (\Exception $e) {
-            \Log::error($e);
-
-            $deleteFlag = false;
+        if (in_array($productId, $products)) {
+            unset($products[$productId]);
         }
 
+        session(['product_data' => $products]);
+
+        $order['total_price'] = $this->totalPrice($products);
+        $order['quantity'] = array_sum(array_column($products, 'quantity'));
+        session(['order_data' => $products]);
+
         return response()->json([
-            'status' => $deleteFlag,
+            'status' => true,
             'total_price' => $totalPrice,
         ]);
     }
