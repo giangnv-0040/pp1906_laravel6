@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -33,11 +34,13 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function map()
+    public function map(Request $request)
     {
+        $locale = $request->segment(1);
+
         $this->mapApiRoutes();
 
-        $this->mapWebRoutes();
+        $this->mapWebRoutes($locale);
 
         //
     }
@@ -49,11 +52,20 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function mapWebRoutes()
+    protected function mapWebRoutes($locale)
     {
-        Route::middleware('web')
+        if ($locale === 'vi') {
+            app()->setLocale($locale);
+
+            Route::middleware('web')
+             ->namespace($this->namespace)
+             ->prefix($locale)
+             ->group(base_path('routes/web.php'));
+        } else {
+            Route::middleware('web')
              ->namespace($this->namespace)
              ->group(base_path('routes/web.php'));
+        }
     }
 
     /**
