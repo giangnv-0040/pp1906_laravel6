@@ -18,6 +18,7 @@ class Product extends Model
         'content',
         'quantity',
         'price',
+        'image',
     ];
 
     public function user() {

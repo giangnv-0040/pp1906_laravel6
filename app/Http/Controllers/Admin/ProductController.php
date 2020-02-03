@@ -56,7 +56,18 @@ class ProductController extends Controller
             'content',
             'quantity',
             'price',
+            'image',
         ]);
+
+        if (!is_null($data['image'])) {
+            $uploaded = $this->upload($data['image'], config('product.image_path'));
+
+            if (!$uploaded['status']) {
+                return back()->with('status', $uploaded['msg']);
+            }
+
+            $data['image'] = $uploaded['file_name'];
+        }
 
         $data['user_id'] = auth()->id();
 
@@ -118,7 +129,20 @@ class ProductController extends Controller
             'content',
             'quantity',
             'price',
+            'image',
         ]);
+
+        if (!$data['image']) {
+            unset($data['image']);
+        } else {
+            $uploaded = $this->upload($data['image'], config('product.image_path'));
+
+            if (!$uploaded['status']) {
+                return back()->with('status', $uploaded['msg']);
+            }
+
+            $data['image'] = $uploaded['file_name'];
+        }
 
         $product = Product::findOrFail($id);
 
@@ -152,5 +176,35 @@ class ProductController extends Controller
         }
 
         return redirect('admin/products')->with('status', 'Delete success');
+    }
+
+    private function upload($file, $path)
+    {
+        try {
+            $ext = $file->getClientOriginalExtension();
+
+            if (!in_array($ext, ['jpg', 'png', 'jpeg', 'gif'])) {
+                $result = [
+                    'status' => false,
+                    'msg' => 'Sorry, only JPG, JPEG, PNG & GIF files are allowed.',
+                ];
+            }
+
+            $storageFilePath = $file->store($path, 'public');
+
+            $result = [
+                'status' => true,
+                'file_name' => basename($storageFilePath),
+            ];
+        } catch (\Exception $e) {
+            \Log::error($e);
+
+            $result = [
+                'status' => false,
+                'msg' => $e->getMessage(),
+            ];
+        }
+
+        return $result;
     }
 }
